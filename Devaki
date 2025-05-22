@@ -1,39 +1,26 @@
-' Scenario4.qfl
-Function ModifyOrderFromFile(filePath, newName, newClass)
-    Dim fso, file, orderNum
-    Set fso = CreateObject("Scripting.FileSystemObject")
-    If Not fso.FileExists(filePath) Then
-        Reporter.ReportEvent micFail, "Read Order Number", "File not found: " & filePath
-        ModifyOrderFromFile = False
-        Exit Function
-    End If
 
-    Set file = fso.OpenTextFile(filePath, 1)
-    orderNum = file.ReadLine
-    file.Close
+' Read order number from file
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set file = fso.OpenTextFile("C:\UFT\OrderNumber.txt", 1)
+orderNum = file.ReadLine
+file.Close
 
-    ' Open order
-    Window("Flight Reservation").WinMenu("Menu").Select "File;Open Order"
-    Window("Flight Reservation").WinEdit("Order No:").Set orderNum
-    Window("Flight Reservation").WinButton("OK").Click
+' Click "Open Order" button instead of menu
+Window("Flight Reservation").WinButton("Open Order").Click
 
-    ' Get current values
-    Dim currentName, currentClass, updateBtn
-    currentName = Window("Flight Reservation").WinEdit("Name:").GetROProperty("text")
-    currentClass = Window("Flight Reservation").WinComboBox("Class:").GetROProperty("text")
+' Enter order number in popup/edit box
+Window("Flight Reservation").WinEdit("Order No:").Set orderNum
+Window("Flight Reservation").WinButton("OK").Click
 
-    ' Update only if changed
-    If currentName <> newName Then Window("Flight Reservation").WinEdit("Name:").Set newName
-    If currentClass <> newClass Then Window("Flight Reservation").WinComboBox("Class:").Select newClass
+' Modify details
+Window("Flight Reservation").WinEdit("Name:").Set "Modified Name"
+Window("Flight Reservation").WinComboBox("Class:").Select "Business"
 
-    Set updateBtn = Window("Flight Reservation").WinButton("Update Order")
-
-    If (currentName <> newName Or currentClass <> newClass) And updateBtn.GetROProperty("enabled") Then
-        updateBtn.Click
-        Reporter.ReportEvent micPass, "Scenario 4", "Order updated successfully."
-        ModifyOrderFromFile = True
-    Else
-        Reporter.ReportEvent micWarning, "Scenario 4", "No changes to update or update button disabled."
-        ModifyOrderFromFile = False
-    End If
-End Function
+' Click update if enabled
+Set updateBtn = Window("Flight Reservation").WinButton("Update Order")
+If updateBtn.GetROProperty("enabled") Then
+    updateBtn.Click
+    Reporter.ReportEvent micPass, "Scenario 4", "Order updated."
+Else
+    Reporter.ReportEvent micWarning, "Scenario 4", "Update button disabled."
+End If
