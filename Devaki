@@ -1,0 +1,35 @@
+' Read Order Number
+Set fso = CreateObject("Scripting.FileSystemObject")
+If Not fso.FileExists("C:\UFT\OrderNumber.txt") Then
+    Reporter.ReportEvent micFail, "Read Order Number", "File not found."
+    ExitTest
+End If
+Set file = fso.OpenTextFile("C:\UFT\OrderNumber.txt", 1)
+orderNum = file.ReadLine
+file.Close
+
+' Open order
+Window("Flight Reservation").WinMenu("Menu").Select "File;Open Order"
+Window("Flight Reservation").WinEdit("Order No:").Set orderNum
+Window("Flight Reservation").WinButton("OK").Click
+
+' New values
+newName = "Modified Name"
+newClass = "Business"
+
+' Current values
+currentName = Window("Flight Reservation").WinEdit("Name:").GetROProperty("text")
+currentClass = Window("Flight Reservation").WinComboBox("Class:").GetROProperty("text")
+
+' Update if changed
+If currentName <> newName Then Window("Flight Reservation").WinEdit("Name:").Set newName
+If currentClass <> newClass Then Window("Flight Reservation").WinComboBox("Class:").Select newClass
+
+Set updateBtn = Window("Flight Reservation").WinButton("Update Order")
+
+If (currentName <> newName Or currentClass <> newClass) And updateBtn.GetROProperty("enabled") Then
+    updateBtn.Click
+    Reporter.ReportEvent micPass, "Scenario 4", "Order updated."
+Else
+    Reporter.ReportEvent micWarning, "Scenario 4", "No update needed or button disabled."
+End If
