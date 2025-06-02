@@ -1,19 +1,22 @@
-bWidget = func_verifyObject(objSalesCycle)
+Public Function funcn_clickLinksorButton(objLink)
+    Dim iflag, waitTime, bnFlagStatus
+    iflag = False
+    waitTime = 0
 
-If bWidget Then
-    rsErrMsg = "Success Sales Cycle Widget is Available"
-    Reporter.ReportEvent micPass, "Sales Cycle Widget: Passed", rsErrMsg
-    bWidget = True
+    Do
+        If objLink.Exist(2) And objLink.GetROProperty("visible") Then
+            bnFlagStatus = objLink.GetROProperty("enabled")
 
-    If objSalesCycle.GetROProperty("text") = "N" Then
-        objSalesCycle.Click
-        Wait 5
-    Else
-        Reporter.ReportEvent micDone, "Sales Cycle Widget: Skipped", "Value is not 'N'"
-    End If
+            If bnFlagStatus Then
+                objLink.Highlight ' Optional debug
+                objLink.Click()
+                iflag = True
+            End If
+        End If
 
-Else
-    rsErrMsg = "Error Sales Cycle Widget is NOT Available"
-    Reporter.ReportEvent micFail, "Sales Cycle Widget: Failed", rsErrMsg
-    bWidget = False
-End If
+        waitTime = waitTime + 10
+        Wait 0, 200 ' Small wait between retries
+    Loop While((iflag = False) And (waitTime < 400))
+
+    funcn_clickLinksorButton = iflag
+End Function
