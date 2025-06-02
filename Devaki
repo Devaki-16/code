@@ -1,23 +1,111 @@
-If Ucase(fstr_SelectOption) = Ucase("Yes") Then
-    If WpfWindow("PAST DUE").Exist(5) Then
-        Set btnYes = WpfWindow("PAST DUE").WpfButton("Yes")
-        If btnYes.Exist(2) And btnYes.WaitProperty("visible", True, 5000) Then
-            btnYes.Click
-            Wait 2
-            bWindow = func_waitExistObj(WpfWindow("Opportunity Focus"))
-            If bWindow Then
-                rsErrMsg = "Success: Clicked 'Yes' and returned to Opportunity Focus page"
-                Reporter.ReportEvent micPass, "Past Opportunity Warning", rsErrMsg
-                bFocusPage = True
-            Else
-                rsErrMsg = "Error: Clicked 'Yes' but did NOT return to Opportunity Focus page"
-                Reporter.ReportEvent micFail, "Past Opportunity Warning", rsErrMsg
+Public Function fsl_CheckPastDateWarning(fstr_Message, fstr_SelectOption)
+
+    Dim bWindow, bFocusPage, rsErrMsg
+    bWindow = True
+    bFocusPage = True
+
+    Reporter.ReportEvent micDone, "Debug", "Option selected: " & fstr_SelectOption
+
+    ' Close button setup
+    Set OptyFocusClose = WpfWindow("Opportunity Focus").WpfButton("btnClose")
+    bClose = func_clickLinksorButton(OptyFocusClose)
+
+    Wait 2
+
+    ' Check if "PAST DUE" warning window appears
+    If WpfWindow("PAST DUE").Exist(10) Then
+        Dim msgText
+        msgText = WpfWindow("PAST DUE").WpfObject("devnamepath:=.*CrmMessageBoxView.*").Object.DataContext.Message
+
+        rsErrMsg = "Success Warning Message: '" & fstr_Message & "' is displayed with 'Yes' and 'No' options for Past Opportunities"
+        Reporter.ReportEvent micPass, "Past Opportunity Warning: Passed", rsErrMsg
+        bWindow = True
+
+        ' === YES OPTION HANDLING ===
+        If UCase(fstr_SelectOption) = "YES" Then
+            Dim btnYes
+            Set btnYes = WpfWindow("PAST DUE").WpfButton("text:=Yes")
+            If Not btnYes.Exist(2) Then
+                Set btnYes = WpfWindow("PAST DUE").WpfButton("index:=0")
             End If
+
+            If btnYes.Exist(5) Then
+                If btnYes.WaitProperty("visible", True, 10000) Then
+                    btnYes.Click
+                    Wait 2
+
+                    ' Wait for "Opportunity Focus" window to appear
+                    bWindow = False
+                    For i = 1 To 10
+                        If WpfWindow("Opportunity Focus").Exist(2) Then
+                            bWindow = True
+                            Exit For
+                        End If
+                        Wait 1
+                    Next
+
+                    If bWindow Then
+                        rsErrMsg = "Success: Clicked 'Yes' and returned to Opportunity Focus page"
+                        Reporter.ReportEvent micPass, "Past Opportunity Warning", rsErrMsg
+                        bFocusPage = True
+                    Else
+                        rsErrMsg = "Error: Clicked 'Yes' but did NOT return to Opportunity Focus page"
+                        Reporter.ReportEvent micFail, "Past Opportunity Warning", rsErrMsg
+                    End If
+                Else
+                    Reporter.ReportEvent micFail, "Button Visibility", "'Yes' button not visible"
+                    Exit Function
+                End If
+            Else
+                Reporter.ReportEvent micFail, "Button Visibility", "'Yes' button not found"
+                Exit Function
+            End If
+
+        ' === NO OPTION HANDLING ===
+        ElseIf UCase(fstr_SelectOption) = "NO" Then
+            Dim btnNo
+            Set btnNo = WpfWindow("PAST DUE").WpfButton("text:=No")
+            If Not btnNo.Exist(2) Then
+                Set btnNo = WpfWindow("PAST DUE").WpfButton("index:=1")
+            End If
+
+            If btnNo.Exist(5) Then
+                btnNo.Click
+                Wait 2
+
+                ' Wait until "Opportunity Focus" window disappears
+                Dim bOptyWindow
+                bOptyWindow = True
+                For i = 1 To 10
+                    If Not WpfWindow("Opportunity Focus").WpfComboBox("cmbOpportunities").Exist(2) Then
+                        bOptyWindow = False
+                        Exit For
+                    End If
+                    Wait 1
+                Next
+
+                If bOptyWindow = False Then
+                    rsErrMsg = "Success On Clicking 'No' in the Warning Message, Opportunity Focus Page Closed"
+                    Reporter.ReportEvent micPass, "Past Opportunity Warning: Passed", rsErrMsg
+                    bFocusPage = True
+                Else
+                    rsErrMsg = "Error On Clicking 'No' in the Warning Message, Opportunity Focus Page NOT Closed"
+                    Reporter.ReportEvent micFail, "Past Opportunity Warning: Failed", rsErrMsg
+                    bFocusPage = False
+                End If
+            Else
+                Reporter.ReportEvent micFail, "Button Visibility", "'No' button not found"
+                Exit Function
+            End If
+
         Else
-            Reporter.ReportEvent micFail, "Button Visibility", "'Yes' button not visible or not found"
+            Reporter.ReportEvent micFail, "Invalid Option", "SelectOption must be either 'Yes' or 'No'"
             Exit Function
         End If
+
     Else
         Reporter.ReportEvent micFail, "Window Missing", "'PAST DUE' window did not appear"
         Exit Function
     End If
+
+End Function
