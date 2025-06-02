@@ -1,26 +1,19 @@
-
-' Read order number from file
-Set fso = CreateObject("Scripting.FileSystemObject")
-Set file = fso.OpenTextFile("C:\UFT\OrderNumber.txt", 1)
-orderNum = file.ReadLine
-file.Close
-
-' Click "Open Order" button instead of menu
-Window("Flight Reservation").WinButton("Open Order").Click
-
-' Enter order number in popup/edit box
-Window("Flight Reservation").WinEdit("Order No:").Set orderNum
-Window("Flight Reservation").WinButton("OK").Click
-
-' Modify details
-Window("Flight Reservation").WinEdit("Name:").Set "Modified Name"
-Window("Flight Reservation").WinComboBox("Class:").Select "Business"
-
-' Click update if enabled
-Set updateBtn = Window("Flight Reservation").WinButton("Update Order")
-If updateBtn.GetROProperty("enabled") Then
-    updateBtn.Click
-    Reporter.ReportEvent micPass, "Scenario 4", "Order updated."
+If objSalesCycle.Exist(10) Then
+    If objSalesCycle.WaitProperty("visible", True, 10000) Then
+        objSalesCycle.Highlight ' For debug visibility
+        rsErrMsg = "Success Sales Cycle Widget is Available"
+        Reporter.ReportEvent micPass, "Sales Cycle Widget: Passed", rsErrMsg
+        bWidget = True
+        Call func_clickLinkursorButton(objSalesCycle)
+        objSalesCycle.Set "On"
+        Wait 5
+    Else
+        rsErrMsg = "Error: Sales Cycle Widget is not visible after wait"
+        Reporter.ReportEvent micFail, "Sales Cycle Widget: Failed", rsErrMsg
+        bWidget = False
+    End If
 Else
-    Reporter.ReportEvent micWarning, "Scenario 4", "Update button disabled."
+    rsErrMsg = "Error: Sales Cycle Widget does not exist"
+    Reporter.ReportEvent micFail, "Sales Cycle Widget: Failed", rsErrMsg
+    bWidget = False
 End If
