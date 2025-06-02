@@ -1,7 +1,23 @@
-objSalesCycle.WaitProperty "visible", True, 10000 ' wait up to 10 sec
+' Step 1: Set references to the widget and button
+Set objSalesCycleWidget = WpfWindow("Opportunity Focus").WpfObject("text:=.*Salescycle.*")
+Set objSalesCycleBtn = WpfWindow("Opportunity Focus").WpfButton("text:=.*Salescycle.*")
 
-If objSalesCycle.Exist(5) Then
-    bWidget = func_verifyObject(objSalesCycle)
+' Step 2: Wait for widget to appear (WpfObject)
+If objSalesCycleWidget.Exist(10) Then
+    Reporter.ReportEvent micPass, "Sales Cycle Widget", "Widget is available"
+
+    ' Step 3: Wait for button to be enabled and visible (WpfButton)
+    objSalesCycleBtn.WaitProperty "enabled", True, 10000
+
+    If objSalesCycleBtn.Exist(5) Then
+        objSalesCycleBtn.Click ' or .Set "On" if Click doesn't work
+        Reporter.ReportEvent micPass, "Sales Cycle Button", "Clicked successfully"
+        bWidget = True
+    Else
+        Reporter.ReportEvent micFail, "Sales Cycle Button", "Button is NOT clickable"
+        bWidget = False
+    End If
 Else
+    Reporter.ReportEvent micFail, "Sales Cycle Widget", "Sales Cycle Widget is NOT available"
     bWidget = False
 End If
