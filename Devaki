@@ -1,19 +1,8 @@
-If objSalesCycle.Exist(10) Then
-    If objSalesCycle.WaitProperty("visible", True, 10000) Then
-        objSalesCycle.Highlight ' For debug visibility
-        rsErrMsg = "Success Sales Cycle Widget is Available"
-        Reporter.ReportEvent micPass, "Sales Cycle Widget: Passed", rsErrMsg
-        bWidget = True
-        Call func_clickLinkursorButton(objSalesCycle)
-        objSalesCycle.Set "On"
-        Wait 5
-    Else
-        rsErrMsg = "Error: Sales Cycle Widget is not visible after wait"
-        Reporter.ReportEvent micFail, "Sales Cycle Widget: Failed", rsErrMsg
-        bWidget = False
+If objSalesCycle.Exist(2) Then
+    objSalesCycle.Highlight
+    If objSalesCycle.GetROProperty("text") = "N" Then
+        objSalesCycle.Click
     End If
 Else
-    rsErrMsg = "Error: Sales Cycle Widget does not exist"
-    Reporter.ReportEvent micFail, "Sales Cycle Widget: Failed", rsErrMsg
-    bWidget = False
+    Reporter.ReportEvent micFail, "Button Not Found", "SalesCycle button doesn't exist"
 End If
