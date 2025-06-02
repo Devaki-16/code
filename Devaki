@@ -1,23 +1,23 @@
-' Step 1: Set references to the widget and button
-Set objSalesCycleWidget = WpfWindow("Opportunity Focus").WpfObject("text:=.*Salescycle.*")
-Set objSalesCycleBtn = WpfWindow("Opportunity Focus").WpfButton("text:=.*Salescycle.*")
-
-' Step 2: Wait for widget to appear (WpfObject)
-If objSalesCycleWidget.Exist(10) Then
-    Reporter.ReportEvent micPass, "Sales Cycle Widget", "Widget is available"
-
-    ' Step 3: Wait for button to be enabled and visible (WpfButton)
-    objSalesCycleBtn.WaitProperty "enabled", True, 10000
-
-    If objSalesCycleBtn.Exist(5) Then
-        objSalesCycleBtn.Click ' or .Set "On" if Click doesn't work
-        Reporter.ReportEvent micPass, "Sales Cycle Button", "Clicked successfully"
-        bWidget = True
+If Ucase(fstr_SelectOption) = Ucase("Yes") Then
+    If WpfWindow("PAST DUE").Exist(5) Then
+        Set btnYes = WpfWindow("PAST DUE").WpfButton("Yes")
+        If btnYes.Exist(2) And btnYes.WaitProperty("visible", True, 5000) Then
+            btnYes.Click
+            Wait 2
+            bWindow = func_waitExistObj(WpfWindow("Opportunity Focus"))
+            If bWindow Then
+                rsErrMsg = "Success: Clicked 'Yes' and returned to Opportunity Focus page"
+                Reporter.ReportEvent micPass, "Past Opportunity Warning", rsErrMsg
+                bFocusPage = True
+            Else
+                rsErrMsg = "Error: Clicked 'Yes' but did NOT return to Opportunity Focus page"
+                Reporter.ReportEvent micFail, "Past Opportunity Warning", rsErrMsg
+            End If
+        Else
+            Reporter.ReportEvent micFail, "Button Visibility", "'Yes' button not visible or not found"
+            Exit Function
+        End If
     Else
-        Reporter.ReportEvent micFail, "Sales Cycle Button", "Button is NOT clickable"
-        bWidget = False
+        Reporter.ReportEvent micFail, "Window Missing", "'PAST DUE' window did not appear"
+        Exit Function
     End If
-Else
-    Reporter.ReportEvent micFail, "Sales Cycle Widget", "Sales Cycle Widget is NOT available"
-    bWidget = False
-End If
