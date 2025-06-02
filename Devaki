@@ -1,22 +1,7 @@
-Public Function funcn_clickLinksorButton(objLink)
-    Dim iflag, waitTime, bnFlagStatus
-    iflag = False
-    waitTime = 0
+objSalesCycle.WaitProperty "visible", True, 10000 ' wait up to 10 sec
 
-    Do
-        If objLink.Exist(2) And objLink.GetROProperty("visible") Then
-            bnFlagStatus = objLink.GetROProperty("enabled")
-
-            If bnFlagStatus Then
-                objLink.Highlight ' Optional debug
-                objLink.Click()
-                iflag = True
-            End If
-        End If
-
-        waitTime = waitTime + 10
-        Wait 0, 200 ' Small wait between retries
-    Loop While((iflag = False) And (waitTime < 400))
-
-    funcn_clickLinksorButton = iflag
-End Function
+If objSalesCycle.Exist(5) Then
+    bWidget = func_verifyObject(objSalesCycle)
+Else
+    bWidget = False
+End If
