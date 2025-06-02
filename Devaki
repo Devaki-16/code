@@ -1,8 +1,19 @@
-If objSalesCycle.Exist(2) Then
-    objSalesCycle.Highlight
-    If objSalesCycle.GetROProperty("text") = "N" Then
-        objSalesCycle.Click
-    End If
+bWidget = func_verifyObject(objSalesCycle)
+
+If bWidget Then
+    rsErrMsg = "Success Sales Cycle Widget is Available"
+    Reporter.ReportEvent micPass, "Sales Cycle Widget: Passed", rsErrMsg
+    bWidget = True
+
+    If objSalesCycle.GetROProperty("text") = "N" Then
+        objSalesCycle.Click
+        Wait 5
+    Else
+        Reporter.ReportEvent micDone, "Sales Cycle Widget: Skipped", "Value is not 'N'"
+    End If
+
 Else
-    Reporter.ReportEvent micFail, "Button Not Found", "SalesCycle button doesn't exist"
+    rsErrMsg = "Error Sales Cycle Widget is NOT Available"
+    Reporter.ReportEvent micFail, "Sales Cycle Widget: Failed", rsErrMsg
+    bWidget = False
 End If
