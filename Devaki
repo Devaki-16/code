@@ -1,15 +1,9 @@
-If objSalesCycle.Exist(5) And objSalesCycle.GetROProperty("enabled") = True Then
-    objSalesCycle.WaitProperty "enabled", True, 10000
-    objSalesCycle.Highlight
-    objSalesCycle.SetFocus
-    objSalesCycle.Set "On"
-    bWidget = True
-    rsErrMsg = "Success Sales Cycle Widget is Available"
-    Reporter.ReportEvent micPass, "Sales Cycle Widget: Passed", rsErrMsg
+Set objSustainabilityDeal = WpfWindow("Opportunity Focus").WpfRadioButton("SustainableDeal_ESG Pure Player_Option")
+
+' Wait for radio button to become enabled (up to 15 seconds)
+If objSustainabilityDeal.WaitProperty("enabled", True, 15000) Then
+    SustainabilityDeal = func_setData(objSustainabilityDeal, fstr_SustainabilityDealValue)
 Else
-    bWidget = False
-    rsErrMsg = "Error Sales Cycle Widget is NOT Available. Exists: " & objSalesCycle.Exist(0) & _
-               ", Visible: " & objSalesCycle.GetROProperty("visible") & _
-               ", Enabled: " & objSalesCycle.GetROProperty("enabled")
-    Reporter.ReportEvent micFail, "Sales Cycle Widget: Failed", rsErrMsg
+    Reporter.ReportEvent micFail, "Radio Button Not Enabled", "SustainableDeal_ESG Pure Player_Option is not enabled after 15 seconds."
+    SustainabilityDeal = False
 End If
