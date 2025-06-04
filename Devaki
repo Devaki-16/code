@@ -1,9 +1,39 @@
-Set objSustainabilityDeal = WpfWindow("Opportunity Focus").WpfRadioButton("SustainableDeal_ESG Pure Player_Option")
+Public Function fsl_FocusPageCancelFunctionality(fstr_CancelOption)
 
-' Wait for radio button to become enabled (up to 15 seconds)
-If objSustainabilityDeal.WaitProperty("enabled", True, 15000) Then
-    SustainabilityDeal = func_setData(objSustainabilityDeal, fstr_SustainabilityDealValue)
-Else
-    Reporter.ReportEvent micFail, "Radio Button Not Enabled", "SustainableDeal_ESG Pure Player_Option is not enabled after 15 seconds."
-    SustainabilityDeal = False
-End If
+    Dim bWindow, objCRM_Ok, objCRM_Cancel
+    bWindow = True
+
+    ' Set popup window objects
+    Set objCRM_Ok = WpfWindow("regexpwndtitle:=CONFIRM CANCELLATION").WpfButton("text:=CRM_Ok")
+    Set objCRM_Cancel = WpfWindow("regexpwndtitle:=CONFIRM CANCELLATION").WpfButton("text:=CRM_Cancel")
+
+    If UCase(fstr_CancelOption) = "OK" Then
+        If objCRM_Ok.Exist(10) And objCRM_Ok.GetROProperty("visible") = True And objCRM_Ok.GetROProperty("enabled") = True Then
+            Reporter.ReportEvent micPass, "OK Popup Displayed", "Clicking OK"
+            objCRM_Ok.Highlight
+            Call funcn_clickLinksorButton(objCRM_Ok)
+        Else
+            Reporter.ReportEvent micFail, "OK Button", "Not visible or not enabled"
+            bWindow = False
+        End If
+
+    ElseIf UCase(fstr_CancelOption) = "CANCEL" Then
+        If objCRM_Cancel.Exist(10) And objCRM_Cancel.GetROProperty("visible") = True And objCRM_Cancel.GetROProperty("enabled") = True Then
+            Reporter.ReportEvent micPass, "Cancel Popup Displayed", "Clicking Cancel"
+            objCRM_Cancel.Highlight
+            Call funcn_clickLinksorButton(objCRM_Cancel)
+        Else
+            Reporter.ReportEvent micFail, "Cancel Button", "Not visible or not enabled"
+            bWindow = False
+        End If
+    End If
+
+    ' Final check: ModuleFocusPageWindow appears back
+    If Not(WpfWindow("ModuleFocusPageWindow").Exist(5)) Then
+        Reporter.ReportEvent micFail, "Focus Page", "ModuleFocusPageWindow not visible after cancel"
+        bWindow = False
+    End If
+
+    fsl_FocusPageCancelFunctionality = bWindow
+
+End Function
