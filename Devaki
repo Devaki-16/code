@@ -244,3 +244,160 @@ INSERT INTO book (title, author, price) VALUES
     </build>
 
 </project>
+
+
+
+
+window.addEventListener('DOMContentLoaded', function () {
+    // Load all books
+    async function loadBooks() {
+        try {
+            const response = await fetch('http://localhost:8080/api/books');
+            const books = await response.json();
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = books.map(book => `
+                <div class="book">
+                    <h3>${book.title}</h3>
+                    <p><strong>Author:</strong> ${book.author}</p>
+                    <p><strong>Price:</strong> $${book.price.toFixed(2)}</p>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error("Error loading books:", error);
+            document.getElementById('bookList').innerHTML = `<p style="color:red;">Could not load books.</p>`;
+        }
+    }
+
+    // Load book by ID
+    async function loadBookById() {
+        const id = document.getElementById('bookIdInput').value;
+        if (!id) {
+            alert("Please enter a book ID.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/books/${id}`);
+            if (!response.ok) {
+                throw new Error("Book not found");
+            }
+            const book = await response.json();
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = `
+                <div class="book">
+                    <h3>${book.title}</h3>
+                    <p><strong>Author:</strong> ${book.author}</p>
+                    <p><strong>Price:</strong> $${book.price.toFixed(2)}</p>
+                </div>
+            `;
+        } catch (error) {
+            console.error("Error loading book:", error);
+            document.getElementById('bookList').innerHTML = `<p style="color:red;">${error.message}</p>`;
+        }
+    }
+
+    // Add a new book
+    document.getElementById('addBookForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newBook = {
+            title: document.getElementById('title').value,
+            author: document.getElementById('author').value,
+            price: parseFloat(document.getElementById('price').value)
+        };
+
+        try {
+            const response = await fetch('http://localhost:8080/api/books', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newBook)
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to add book");
+            }
+
+            loadBooks(); // Refresh the list
+            e.target.reset();   // Clear form
+        } catch (error) {
+            console.error("Error adding book:", error);
+            alert("Failed to add book. Please try again.");
+        }
+    });
+
+    // Attach button click events
+    document.getElementById('showByIdBtn').addEventListener('click', loadBookById);
+    document.getElementById('showAllBtn').addEventListener('click', loadBooks);
+
+    // Initial load
+    loadBooks();
+});
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bookstore</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<h1>Bookstore</h1>
+
+<!-- List of Books -->
+<div id="bookList"></div>
+
+<!-- Action Buttons -->
+<div id="actions">
+    <input type="number" id="bookIdInput" placeholder="Enter Book ID" min="1" />
+    <button id="showByIdBtn">Show Book by ID</button>
+    <button id="showAllBtn">Show All Books</button>
+</div>
+
+<!-- Add New Book Form -->
+<form id="addBookForm">
+    <input type="text" id="title" placeholder="Title" required>
+    <input type="text" id="author" placeholder="Author" required>
+    <input type="number" id="price" placeholder="Price" step="0.01" required>
+    <button type="submit">Add Book</button>
+</form>
+
+<!-- Load JS after HTML -->
+<script src="app.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+body { font-family: Arial, sans-serif; margin: 20px; }
+#bookList { margin: 20px 0; }
+
+#actions {
+    margin-bottom: 20px;
+}
+#actions input {
+    padding: 8px;
+    margin: 0 10px;
+    width: 150px;
+}
+
+.book {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 300px;
+}
+input, button { padding: 8px; }
+button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+button:hover { background: #45a049; }
