@@ -667,3 +667,88 @@ public class JsonReaderService {
         });
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+package com.example.jsonreader.service;
+
+import com.example.jsonreader.model.EntityResponse;
+import com.example.jsonreader.model.EntityData;
+import com.example.jsonreader.model.Wrapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+@Service
+public class JsonReaderService {
+
+    public void readAndDisplayEntities() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            InputStream inputStream = new ClassPathResource("data/entities.json").getInputStream();
+            EntityResponse response = mapper.readValue(inputStream, EntityResponse.class);
+
+            List<Wrapper> wrappers = response.getResults();
+
+            System.out.printf("Total entities: %d%n%n", wrappers.size());
+
+            wrappers.stream()
+                    .map(Wrapper::getEntity)
+                    .filter(Objects::nonNull)
+                    .forEach(this::printEntityFields);
+
+        } catch (Exception e) {
+            System.err.println("Error processing JSON file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void printEntityFields(EntityData entity) {
+        System.out.println("===== ENTITY =====");
+
+        Optional.ofNullable(entity.getIdentifiers())
+                .ifPresentOrElse(
+                        ids -> {
+                            System.out.println("--- Identifiers ---");
+                            ids.forEach((k, v) -> System.out.printf("%-20s: %s%n", k, v));
+                        },
+                        () -> System.out.println("No Identifiers")
+                );
+
+        Optional.ofNullable(entity.getBusinessGroup())
+                .ifPresentOrElse(
+                        bg -> {
+                            System.out.println("--- Business Group ---");
+                            bg.forEach((k, v) -> System.out.printf("%-20s: %s%n", k, v));
+                        },
+                        () -> System.out.println("No Business Group")
+                );
+
+        System.out.println();
+    }
+}
