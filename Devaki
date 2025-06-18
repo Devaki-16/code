@@ -31,6 +31,31 @@ public class JsonReaderService {
 
 
 
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
+@SpringBootApplication
+public class DemoApplication implements CommandLineRunner {
+
+    @Autowired
+    private JsonReaderService service;
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) {
+        List<EntityData> dataList = service.readEntityData();
+        dataList.forEach(data -> {
+            System.out.println("PTY ID: " + data.getIdentifiers().getPtyId());
+            System.out.println("Business Group: " + data.getBusinessGroup().getName());
+        });
+    }
+}
 
 @Override
 public void run(String... args) {
