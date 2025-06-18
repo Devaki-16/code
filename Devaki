@@ -122,3 +122,39 @@ server.port=8080
 # Logging config
 logging.level.org.springframework=INFO
 spring.jackson.serialization.indent_output=true
+
+
+
+
+
+
+
+
+
+public List<EntityData> readEntities() {
+    try {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Print debug message
+        System.out.println("Trying to load: data/entities.json");
+
+        InputStream inputStream = new ClassPathResource("data/entities.json").getInputStream();
+
+        System.out.println("File loaded. Reading contents...");
+
+        List<Wrapper> wrappers = mapper.readValue(inputStream,
+                mapper.getTypeFactory().constructCollectionType(List.class, Wrapper.class));
+
+        System.out.println("Parsing complete. Extracting entity data...");
+
+        return wrappers.stream()
+                .map(Wrapper::getEntity)
+                .collect(Collectors.toList());
+
+    } catch (Exception e) {
+        System.out.println("Error details: " + e.getMessage());  // Print actual cause
+        e.printStackTrace();  // Print full stack trace
+        throw new RuntimeException("Failed to read JSON file", e);
+    }
+}
+
