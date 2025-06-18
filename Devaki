@@ -1,403 +1,58 @@
-package com.bookstore.controller;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.springframework.stereotype.Service;
 
-import com.bookstore.model.Book;
-import com.bookstore.repository.BookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:5500")
-@RestController
-@RequestMapping("/api/books")
-public class BookController {
+@Service
+public class JsonReaderService {
 
-    @Autowired
-    private BookRepository bookRepository;
-
-    @GetMapping
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
-        return bookRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public Book addBook(@RequestBody Book book) {
-        return bookRepository.save(book);
-    }
-}
-
-
-
-
-
-
-
-
-
-package com.bookstore.model;
-
-import jakarta.persistence.*;
-
-@Entity
-public class Book {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String title;
-    private String author;
-    private double price;
-
-    // Constructors
-    public Book() {}
-
-    public Book(String title, String author, double price) {
-        this.title = title;
-        this.author = author;
-        this.price = price;
-    }
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public String getAuthor() { return author; }
-    public double getPrice() { return price; }
-    public void setId(Long id) { this.id = id; }
-    public void setTitle(String title) { this.title = title; }
-    public void setAuthor(String author) { this.author = author; }
-    public void setPrice(double price) { this.price = price; }
-}
-
-
-
-
-
-package com.bookstore.repository;
-
-import com.bookstore.model.Book;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface BookRepository extends JpaRepository<Book, Long> {
-}
-
-
-
-
-
-
-package com.bookstore;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class BookstoreApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(BookstoreApplication.class, args);
-    }
-}
-
-
-
-
-
-# H2 Database (In-Memory)
-spring.datasource.url=jdbc:h2:mem:bookstore
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
-
-# H2 Console (Access at http://localhost:8080/h2-console)
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
-
-# Initialize database with sample data
-spring.sql.init.mode=always
-spring.jpa.defer-datasource-initialization=true
-
-
-
-
-
-INSERT INTO book (title, author, price) VALUES
-('The Great Gatsby', 'F. Scott Fitzgerald', 10.99),
-('To Kill a Mockingbird', 'Harper Lee', 12.50),
-('1984', 'George Orwell', 8.99);
-
-
-
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-
-    <groupId>com.bookstore</groupId>
-    <artifactId>backend</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>bookstore-backend</name>
-
-    <properties>
-        <java.version>17</java.version>
-        <jakarta-servlet.version>6.0.0</jakarta-servlet.version>
-        <lombok.version>1.18.30</lombok.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
-
-    <dependencies>
-        <!-- Spring Boot Starters -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
-        <!-- Database -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- Development Tools -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-
-            <!-- Optional: Maven Compiler Plugin for explicit Java version -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-</project>
-
-
-
-
-window.addEventListener('DOMContentLoaded', function () {
-    // Load all books
-    async function loadBooks() {
+    public List<EntityData> readEntityData() {
         try {
-            const response = await fetch('http://localhost:8080/api/books');
-            const books = await response.json();
-            const bookList = document.getElementById('bookList');
-            bookList.innerHTML = books.map(book => `
-                <div class="book">
-                    <h3>${book.title}</h3>
-                    <p><strong>Author:</strong> ${book.author}</p>
-                    <p><strong>Price:</strong> $${book.price.toFixed(2)}</p>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error("Error loading books:", error);
-            document.getElementById('bookList').innerHTML = `<p style="color:red;">Could not load books.</p>`;
+            ObjectMapper mapper = new ObjectMapper();
+            InputStream is = getClass().getClassLoader().getResourceAsStream("data.json");
+
+            ResultWrapper resultWrapper = mapper.readValue(is, ResultWrapper.class);
+
+            return resultWrapper.getResults().stream()
+                    .map(Result::getEntity)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return null;
     }
+}
 
-    // Load book by ID
-    async function loadBookById() {
-        const id = document.getElementById('bookIdInput').value;
-        if (!id) {
-            alert("Please enter a book ID.");
-            return;
-        }
 
-        try {
-            const response = await fetch(`http://localhost:8080/api/books/${id}`);
-            if (!response.ok) {
-                throw new Error("Book not found");
-            }
-            const book = await response.json();
-            const bookList = document.getElementById('bookList');
-            bookList.innerHTML = `
-                <div class="book">
-                    <h3>${book.title}</h3>
-                    <p><strong>Author:</strong> ${book.author}</p>
-                    <p><strong>Price:</strong> $${book.price.toFixed(2)}</p>
-                </div>
-            `;
-        } catch (error) {
-            console.error("Error loading book:", error);
-            document.getElementById('bookList').innerHTML = `<p style="color:red;">${error.message}</p>`;
-        }
-    }
 
-    // Add a new book
-    document.getElementById('addBookForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const newBook = {
-            title: document.getElementById('title').value,
-            author: document.getElementById('author').value,
-            price: parseFloat(document.getElementById('price').value)
-        };
 
-        try {
-            const response = await fetch('http://localhost:8080/api/books', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newBook)
-            });
 
-            if (!response.ok) {
-                throw new Error("Failed to add book");
-            }
 
-            loadBooks(); // Refresh the list
-            e.target.reset();   // Clear form
-        } catch (error) {
-            console.error("Error adding book:", error);
-            alert("Failed to add book. Please try again.");
-        }
+@Override
+public void run(String... args) {
+    List<EntityData> dataList = service.readEntityData();
+    dataList.forEach(data -> {
+        System.out.println("--- Entity Data ---");
+
+        Identifiers id = data.getIdentifiers();
+        BusinessGroup bg = data.getBusinessGroup();
+
+        System.out.println("PTY ID: " + id.getPtyId());
+        System.out.println("CRDS Code: " + id.getCrdsCode());
+        System.out.println("KYC ID: " + id.getKycId());
+
+        System.out.println("\nBusiness Group Code: " + bg.getBusinessGroupCode());
+        System.out.println("Name: " + bg.getName());
+        System.out.println("Business Country: " + bg.getBusinessCountry());
+        System.out.println("Responsible Entity Code: " + bg.getResponsibleEntityCode());
+        System.out.println("Responsible Entity Name: " + bg.getResponsibleEntityName());
+        System.out.println("Coverage: " + bg.getCoverage());
+        System.out.println("Last Rating Date: " + bg.getLastRatingDate());
+
+        System.out.println("------------------------------------\n");
     });
-
-    // Attach button click events
-    document.getElementById('showByIdBtn').addEventListener('click', loadBookById);
-    document.getElementById('showAllBtn').addEventListener('click', loadBooks);
-
-    // Initial load
-    loadBooks();
-});
-
-
-
-
-
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Bookstore</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<h1>Bookstore</h1>
-
-<!-- List of Books -->
-<div id="bookList"></div>
-
-<!-- Action Buttons -->
-<div id="actions">
-    <input type="number" id="bookIdInput" placeholder="Enter Book ID" min="1" />
-    <button id="showByIdBtn">Show Book by ID</button>
-    <button id="showAllBtn">Show All Books</button>
-</div>
-
-<!-- Add New Book Form -->
-<form id="addBookForm">
-    <input type="text" id="title" placeholder="Title" required>
-    <input type="text" id="author" placeholder="Author" required>
-    <input type="number" id="price" placeholder="Price" step="0.01" required>
-    <button type="submit">Add Book</button>
-</form>
-
-<!-- Load JS after HTML -->
-<script src="app.js"></script>
-</body>
-</html>
-
-
-
-
-
-
-body { font-family: Arial, sans-serif; margin: 20px; }
-#bookList { margin: 20px 0; }
-
-#actions {
-    margin-bottom: 20px;
 }
-#actions input {
-    padding: 8px;
-    margin: 0 10px;
-    width: 150px;
-}
-
-.book {
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-}
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 300px;
-}
-input, button { padding: 8px; }
-button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-button:hover { background: #45a049; }
