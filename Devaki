@@ -260,3 +260,68 @@ public class JsonReaderService {
         });
     }
 }
+
+
+
+
+package com.example.jsonreader.service;
+
+import com.example.jsonreader.model.EntityData;
+import com.example.jsonreader.model.EntityResponse;
+import com.example.jsonreader.model.Wrapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.util.List;
+
+@Service
+public class JsonReaderService {
+
+    public void readAndDisplayEntities() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            
+            InputStream inputStream = new ClassPathResource("data/entities.json").getInputStream();
+            EntityResponse response = mapper.readValue(inputStream, EntityResponse.class);
+            
+            displayEntities(response.getResults());
+
+        } catch (Exception e) {
+            System.err.println("Error processing JSON file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void displayEntities(List<Wrapper> wrappers) {
+        System.out.println("\n===== ENTITY DATA =====");
+        System.out.printf("Total entities: %d%n%n", wrappers.size());
+        
+        wrappers.forEach(wrapper -> {
+            EntityData entity = wrapper.getEntity();
+            
+            // Handle identifiers
+            System.out.println("--- Identifiers ---");
+            if (entity.getIdentifiers() != null && !entity.getIdentifiers().isEmpty()) {
+                entity.getIdentifiers().forEach((key, value) -> 
+                    System.out.printf("%-15s: %s%n", key, value));
+            } else {
+                System.out.println("No identifier data");
+            }
+            
+            // Handle business group
+            System.out.println("\n--- Business Group ---");
+            if (entity.getBusinessGroup() != null && !entity.getBusinessGroup().isEmpty()) {
+                entity.getBusinessGroup().forEach((key, value) -> 
+                    System.out.printf("%-15s: %s%n", key, value));
+            } else {
+                System.out.println("No business group data");
+            }
+            
+            System.out.println("\n=====================\n");
+        });
+    }
+}
