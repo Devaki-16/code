@@ -214,3 +214,37 @@ spring.jackson.serialization.indent_output=true
 
 
 
+package com.example.jsonreader.service;
+
+import com.example.jsonreader.model.Wrapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.util.List;
+
+@Service
+public class JsonReaderService {
+
+    public List<Wrapper> readEntities() {
+        try {
+            // Load JSON file from resources folder (make sure file is placed under src/main/resources)
+            InputStream inputStream = getClass().getResourceAsStream("/entities.json");
+
+            if (inputStream == null) {
+                throw new RuntimeException("File not found in resources: /entities.json");
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            // Read the JSON array and map to List<Wrapper>
+            List<Wrapper> entityList = mapper.readValue(inputStream, new TypeReference<List<Wrapper>>() {});
+            return entityList;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error reading or parsing JSON file", e);
+        }
+    }
+}
