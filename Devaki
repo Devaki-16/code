@@ -510,3 +510,82 @@ public class JsonReaderService {
         return map.containsKey(key) ? String.valueOf(map.get(key)) : "N/A";
     }
 }
+
+
+
+
+
+
+package com.example.jsonreader.service;
+
+import com.example.jsonreader.model.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class JsonReaderService {
+
+    public void readAndDisplayEntities() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            InputStream inputStream = new ClassPathResource("data/entities.json").getInputStream();
+            
+            // Explicitly declare the Map types for deserialization
+            EntityResponse response = mapper.readValue(inputStream, EntityResponse.class);
+            displayEntities(response.getResults());
+
+        } catch (Exception e) {
+            System.err.println("Error processing JSON file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void displayEntities(List<Wrapper> wrappers) {
+        System.out.println("\n===== ENTITY DATA =====");
+        System.out.printf("Total entities: %d%n%n", wrappers.size());
+
+        wrappers.forEach(wrapper -> {
+            EntityData entity = wrapper.getEntity();
+            
+            // Display identifiers with proper type casting
+            System.out.println("--- Identifiers ---");
+            displayMapContents(entity.getIdentifiers());
+
+            // Display business group with proper type casting
+            System.out.println("\n--- Business Group ---");
+            displayMapContents(entity.getBusinessGroup());
+
+            System.out.println("\n=====================");
+        });
+    }
+
+    private void displayMapContents(Map<String, Object> map) {
+        if (map == null || map.isEmpty()) {
+            System.out.println("No data available");
+            return;
+        }
+
+        map.forEach((key, value) -> {
+            if (value instanceof Map) {
+                System.out.println(key + ":");
+                displayMapContents((Map<String, Object>) value);
+            } else if (value instanceof List) {
+                System.out.println(key + ":");
+                ((List<?>) value).forEach(item -> {
+                    if (item instanceof Map) {
+                        displayMapContents((Map<String, Object>) item);
+                    } else {
+                        System.out.println("  " + item);
+                    }
+                });
+            } else {
+                System.out.printf("%-20s: %s%n", key, value);
+            }
+        });
+    }
+}
