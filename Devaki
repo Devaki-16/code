@@ -1,195 +1,198 @@
-public class Identifiers {
-    private int ptyId;
-    private String crdsCode;
-    private long kycId;
+package com.example.jsonreader.model;
 
-    // Getters and Setters
-}
+import lombok.Data;
+import java.util.Map;
 
-public class BusinessGroup {
-    private String businessGroupCode;
-    private String name;
-    private String businessCountry;
-    private String responsibleEntityCode;
-    private String responsibleEntityName;
-    private String coverage;
-    private String lastRatingDate;
-
-    // Getters and Setters
-}
-
-
+@Data
 public class EntityData {
-    private Identifiers identifiers;
-    private BusinessGroup businessGroup;
-
-    // Getters and Setters
+    private Map<String, Object> identifiers;
+    private Map<String, Object> businessGroup;
 }
 
 
+
+package com.example.jsonreader.model;
+
+import lombok.Data;
 import java.util.List;
 
-public class ResultWrapper {
-    private List<Result> results;
-
-    // Getter and Setter
+@Data
+public class EntityResponse {
+    private String date;
+    private String version;
+    private String type;
+    private int totalResults;
+    private List<Wrapper> results;
 }
 
-public class Result {
+
+
+package com.example.jsonreader.model;
+
+import lombok.Data;
+
+@Data
+public class Wrapper {
     private EntityData entity;
-
-    // Getter and Setter
 }
 
 
+
+package com.example.jsonreader;
+
+import com.example.jsonreader.model.EntityData;
+import com.example.jsonreader.service.JsonReaderService;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class JsonReaderApplication implements CommandLineRunner {
+
+    private final JsonReaderService jsonReaderService;
+
+    public JsonReaderApplication(JsonReaderService jsonReaderService) {
+        this.jsonReaderService = jsonReaderService;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(JsonReaderApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("\n===== Starting Entity Data Processing =====");
+        jsonReaderService.readAndDisplayEntities();
+        System.out.println("===== Processing Complete =====");
+    }
+}
+
+
+
+package com.example.jsonreader.service;
+
+import com.example.jsonreader.model.EntityData;
+import com.example.jsonreader.model.EntityResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class JsonReaderService {
 
-    public List<EntityData> readEntityData() {
+    public void readAndDisplayEntities() {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            InputStream is = getClass().getClassLoader().getResourceAsStream("data.json");
+            InputStream inputStream = new ClassPathResource("data/entities.json").getInputStream();
 
-            ResultWrapper resultWrapper = mapper.readValue(is, ResultWrapper.class);
+            EntityResponse response = mapper.readValue(inputStream, EntityResponse.class);
+            List<EntityData> entities = response.getResults()
+                    .stream()
+                    .map(wrapper -> wrapper.getEntity())
+                    .toList();
 
-            return resultWrapper.getResults().stream()
-                    .map(Result::getEntity)
-                    .collect(Collectors.toList());
+            displayEntities(entities);
 
         } catch (Exception e) {
+            System.err.println("Error processing JSON file: " + e.getMessage());
             e.printStackTrace();
         }
-        return null;
-    }
-}
-
-
-
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.beans.factory.annotation.Autowired;
-import java.util.List;
-
-@SpringBootApplication
-public class DemoApplication implements CommandLineRunner {
-
-    @Autowired
-    private JsonReaderService service;
-
-    public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
     }
 
-    @Override
-    public void run(String... args) {
-        List<EntityData> dataList = service.readEntityData();
-        dataList.forEach(data -> {
-            System.out.println("PTY ID: " + data.getIdentifiers().getPtyId());
-            System.out.println("Business Group: " + data.getBusinessGroup().getName());
+    private void displayEntities(List<EntityData> entities) {
+        System.out.printf("\nFound %d entities:\n", entities.size());
+        System.out.println("----------------------------------------");
+
+        entities.forEach(entity -> {
+            System.out.println("Identifiers:");
+            entity.getIdentifiers().forEach((key, value) ->
+                    System.out.printf("  %s: %s\n", key, value));
+
+            System.out.println("\nBusiness Group:");
+            entity.getBusinessGroup().forEach((key, value) ->
+                    System.out.printf("  %s: %s\n", key, value));
+
+            System.out.println("----------------------------------------");
         });
     }
 }
 
 
-@Override
-public void run(String... args) {
-    List<EntityData> dataList = service.readEntityData();
-    dataList.forEach(data -> {
-        System.out.println("--- Entity Data ---");
-
-        Identifiers id = data.getIdentifiers();
-        BusinessGroup bg = data.getBusinessGroup();
-
-        System.out.println("PTY ID: " + id.getPtyId());
-        System.out.println("CRDS Code: " + id.getCrdsCode());
-        System.out.println("KYC ID: " + id.getKycId());
-
-        System.out.println("\nBusiness Group Code: " + bg.getBusinessGroupCode());
-        System.out.println("Name: " + bg.getName());
-        System.out.println("Business Country: " + bg.getBusinessCountry());
-        System.out.println("Responsible Entity Code: " + bg.getResponsibleEntityCode());
-        System.out.println("Responsible Entity Name: " + bg.getResponsibleEntityName());
-        System.out.println("Coverage: " + bg.getCoverage());
-        System.out.println("Last Rating Date: " + bg.getLastRatingDate());
-
-        System.out.println("------------------------------------\n");
-    });
-}
 
 
 
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
     <artifactId>jsonreader</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
-
-
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version> <!-- Or your Spring Boot version -->
+        <version>3.2.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <properties>
-        <java.version>17</java.version> <!-- Match your IntelliJ project SDK -->
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Core -->
+        <!-- Spring Boot Core (without web) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
+
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
 
-        <!-- Jackson for JSON parsing (already bundled, but adding explicitly is fine) -->
+        <!-- Jackson for JSON processing -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Optional: For better logging in console -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-logging</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.example.jsonreader.JsonReaderApplication</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>
