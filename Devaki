@@ -752,3 +752,40 @@ public class JsonReaderService {
         System.out.println();
     }
 }
+
+
+
+
+
+
+
+
+
+private void displayEntities(List<Wrapper> wrappers) {
+    System.out.println("\n===== ENTITY DATA =====");
+    System.out.printf("Total entities: %d%n%n", wrappers.size());
+
+    wrappers.forEach(wrapper -> {
+        EntityData entity = wrapper.getEntity();
+
+        // Handle identifiers
+        System.out.println("--- Identifiers ---");
+        if (entity != null && entity.getIdentifiers() != null && !entity.getIdentifiers().isEmpty()) {
+            entity.getIdentifiers().forEach((key, value) ->
+                System.out.printf("%-15s: %s%n", key, value));
+        } else {
+            System.out.println("No identifier data");
+        }
+
+        // Handle businessGroup from wrapper (outside entity)
+        System.out.println("\n--- Business Group ---");
+        if (wrapper.getBusinessGroup() != null) {
+            System.out.println(wrapper.getBusinessGroup()); // Or cast/map if needed
+        } else {
+            System.out.println("No business group data");
+        }
+
+        System.out.println("\n=====================\n");
+    });
+}
+
