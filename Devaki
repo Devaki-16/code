@@ -789,3 +789,110 @@ private void displayEntities(List<Wrapper> wrappers) {
     });
 }
 
+
+
+
+
+
+
+
+
+package com.example.jsonreader.service;
+
+import com.example.jsonreader.model.EntityData;
+import com.example.jsonreader.model.EntityResponse;
+import com.example.jsonreader.model.Wrapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class JsonReaderService {
+
+    public void readAndDisplayEntities() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            InputStream inputStream = new ClassPathResource("data/entities.json").getInputStream();
+            EntityResponse response = mapper.readValue(inputStream, EntityResponse.class);
+
+            displayEntities(response.getResults());
+
+        } catch (Exception e) {
+            System.err.println("Error processing JSON file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void displayEntities(List<Wrapper> wrappers) {
+        System.out.println("\n===== ENTITY DATA =====");
+        System.out.printf("Total entities: %d%n%n", wrappers.size());
+
+        wrappers.forEach(wrapper -> {
+            EntityData entity = wrapper.getEntity();
+
+            // Handle identifiers
+            System.out.println("--- Identifiers ---");
+            if (entity != null && entity.getIdentifiers() != null && !entity.getIdentifiers().isEmpty()) {
+                entity.getIdentifiers().forEach((key, value) ->
+                        System.out.printf("%-15s: %s%n", key, value));
+            } else {
+                System.out.println("No identifier data");
+            }
+
+            // Handle business group (outside entity)
+            System.out.println("\n--- Business Group ---");
+            Map<String, Object> businessGroup = wrapper.getBusinessGroup();
+            if (businessGroup != null && !businessGroup.isEmpty()) {
+                businessGroup.forEach((key, value) ->
+                        System.out.printf("%-20s: %s%n", key, value));
+            } else {
+                System.out.println("No business group data");
+            }
+
+            System.out.println("\n=====================\n");
+        });
+    }
+}
+
+
+
+
+
+
+
+
+package com.example.jsonreader;
+
+import com.example.jsonreader.service.JsonReaderService;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class JsonReaderApplication implements CommandLineRunner {
+
+    private final JsonReaderService jsonReaderService;
+
+    public JsonReaderApplication(JsonReaderService jsonReaderService) {
+        this.jsonReaderService = jsonReaderService;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(JsonReaderApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("\n===== Starting Entity Data Processing =====");
+        jsonReaderService.readAndDisplayEntities();  // Fixed: removed invalid "="
+        System.out.println("===== Processing Complete =====");
+    }
+}
+
