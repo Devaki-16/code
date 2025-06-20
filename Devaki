@@ -1,98 +1,51 @@
-package com.example.jsonreader.service;
+private void displayEntities(List<Wrapper> wrappers) {
+    System.out.println("\n===== ENTITY DATA =====");
+    System.out.printf("Total entities: %d%n%n", wrappers.size());
 
-import com.example.jsonreader.model.BusinessGroup;
-import com.example.jsonreader.model.EntityData;
-import com.example.jsonreader.model.EntityResponse;
-import com.example.jsonreader.model.RiskIndustry;
-import com.example.jsonreader.model.Wrapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
+    int index = 1;
+    for (Wrapper wrapper : wrappers) {
+        EntityData entity = wrapper.getEntity();
+        BusinessGroup bg = wrapper.getBusinessGroup();
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
+        System.out.printf("Entity %d:%n", index++);
 
-@Service
-public class JsonReaderService {
-
-    /**
-     * Method used in ApplicationRunner or CommandLineRunner
-     */
-    public void readAndDisplayEntities() {
-        List<Wrapper> wrappers = getEntities();  // Reuse same method for REST and console
-        displayEntities(wrappers);
-    }
-
-    /**
-     * Used by REST controller to return data
-     */
-    public List<Wrapper> getEntities() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-            InputStream inputStream = new ClassPathResource("data/entities.json").getInputStream();
-            EntityResponse response = mapper.readValue(inputStream, EntityResponse.class);
-            return response.getResults();
-
-        } catch (Exception e) {
-            System.err.println("Error processing JSON file: " + e.getMessage());
-            e.printStackTrace();
-            return List.of(); // Return empty list on failure
+        // Identifiers
+        if (entity != null && entity.getIdentifiers() != null && !entity.getIdentifiers().isEmpty()) {
+            String idStr = entity.getIdentifiers().entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.joining(", "));
+            System.out.println("Identifiers: [" + idStr + "]");
+        } else {
+            System.out.println("Identifiers: [No data]");
         }
-    }
 
-    /**
-     * Prints the entity data to console
-     */
-    private void displayEntities(List<Wrapper> wrappers) {
-        System.out.println("\n===== ENTITY DATA =====");
-        System.out.printf("Total entities: %d%n%n", wrappers.size());
+        // Business Group (combined with riskIndustry inline)
+        if (bg != null) {
+            StringBuilder bgInfo = new StringBuilder("BusinessGroup: [");
+            bgInfo.append("businessGroupCode=").append(bg.getBusinessGroupCode()).append(", ");
+            bgInfo.append("name=").append(bg.getName()).append(", ");
+            bgInfo.append("businessCountry=").append(bg.getBusinessCountry()).append(", ");
+            bgInfo.append("responsibleEntityCode=").append(bg.getResponsibleEntityCode()).append(", ");
+            bgInfo.append("responsibleEntityName=").append(bg.getResponsibleEntityName()).append(", ");
+            bgInfo.append("coverage=").append(bg.getCoverage()).append(", ");
+            bgInfo.append("lastRatingDate=").append(bg.getLastRatingDate());
 
-        int index = 1;
-        for (Wrapper wrapper : wrappers) {
-            EntityData entity = wrapper.getEntity();
-            BusinessGroup businessGroup = wrapper.getBusinessGroup();
-
-            System.out.printf("Entity %d:%n", index++);
-
-            // Identifiers
-            if (entity != null && entity.getIdentifiers() != null && !entity.getIdentifiers().isEmpty()) {
-                String idStr = entity.getIdentifiers().entrySet().stream()
-                        .map(entry -> entry.getKey() + "=" + entry.getValue())
+            // Include RiskIndustry inline
+            List<RiskIndustry> riskIndustries = bg.getRiskIndustry();
+            if (riskIndustries != null && !riskIndustries.isEmpty()) {
+                String riskList = riskIndustries.stream()
+                        .map(ri -> String.format("{industryCode=%s, industryPercentage=%d}",
+                                ri.getIndustryCode(), ri.getIndustryPercentage()))
                         .collect(Collectors.joining(", "));
-                System.out.println("Identifiers: [" + idStr + "]");
-            } else {
-                System.out.println("Identifiers: [No data]");
+                bgInfo.append(", riskIndustry=[").append(riskList).append("]");
             }
 
-            // Business Group
-            if (businessGroup != null) {
-                System.out.print("BusinessGroup: [");
-                System.out.printf("businessGroupCode=%s, ", businessGroup.getBusinessGroupCode());
-                System.out.printf("name=%s, ", businessGroup.getName());
-                System.out.printf("businessCountry=%s, ", businessGroup.getBusinessCountry());
-                System.out.printf("responsibleEntityCode=%s, ", businessGroup.getResponsibleEntityCode());
-                System.out.printf("responsibleEntityName=%s, ", businessGroup.getResponsibleEntityName());
-                System.out.printf("coverage=%s, ", businessGroup.getCoverage());
-                System.out.printf("lastRatingDate=%s", businessGroup.getLastRatingDate());
-                System.out.println("]");
-
-                // Risk Industry
-                if (businessGroup.getRiskIndustry() != null && !businessGroup.getRiskIndustry().isEmpty()) {
-                    System.out.println("RiskIndustry:");
-                    businessGroup.getRiskIndustry().forEach((RiskIndustry risk) -> {
-                        System.out.printf("  - industryCode=%s, industryPercentage=%d%n",
-                                risk.getIndustryCode(), risk.getIndustryPercentage());
-                    });
-                }
-            } else {
-                System.out.println("BusinessGroup: [No data]");
-            }
-
-            System.out.println();
+            bgInfo.append("]");
+            System.out.println(bgInfo);
+        } else {
+            System.out.println("BusinessGroup: [No data]");
         }
+
+        System.out.println();
     }
 }
