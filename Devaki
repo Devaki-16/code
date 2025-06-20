@@ -932,3 +932,64 @@ private void displayEntities(List<Wrapper> wrappers) {
         System.out.println(); // Extra line for spacing
     }
 }
+
+
+
+
+
+
+
+
+
+private void displayEntities(List<Wrapper> wrappers) {
+    System.out.println("\n===== ENTITY DATA =====");
+    System.out.printf("Total entities: %d%n%n", wrappers.size());
+
+    int index = 1;
+    for (Wrapper wrapper : wrappers) {
+        EntityData entity = wrapper.getEntity();
+        BusinessGroup businessGroup = wrapper.getBusinessGroup();
+
+        System.out.printf("Entity %d:%n", index++);
+
+        // Print identifiers
+        if (entity != null && entity.getIdentifiers() != null) {
+            String identifierStr = entity.getIdentifiers().entrySet().stream()
+                    .map(e -> e.getKey() + "=" + e.getValue())
+                    .collect(Collectors.joining(", "));
+            System.out.println("Identifiers: [" + identifierStr + "]");
+        } else {
+            System.out.println("Identifiers: [No data]");
+        }
+
+        // Print business group
+        if (businessGroup != null) {
+            System.out.print("BusinessGroup: [");
+            System.out.printf(
+                    "businessGroupCode=%s, name=%s, businessCountry=%s, responsibleEntityCode=%s, responsibleEntityName=%s, coverage=%s, lastRatingDate=%s",
+                    businessGroup.getBusinessGroupCode(),
+                    businessGroup.getName(),
+                    businessGroup.getBusinessCountry(),
+                    businessGroup.getResponsibleEntityCode(),
+                    businessGroup.getResponsibleEntityName(),
+                    businessGroup.getCoverage(),
+                    businessGroup.getLastRatingDate()
+            );
+
+            // Print risk industry if present
+            if (businessGroup.getRiskIndustry() != null && !businessGroup.getRiskIndustry().isEmpty()) {
+                System.out.print(", riskIndustry=[");
+                businessGroup.getRiskIndustry().forEach(risk -> System.out.printf(
+                        "{industryCode=%s, industryPercentage=%d} ",
+                        risk.getIndustryCode(), risk.getIndustryPercentage()));
+                System.out.print("]");
+            }
+
+            System.out.println("]");
+        } else {
+            System.out.println("BusinessGroup: [No data]");
+        }
+
+        System.out.println();
+    }
+}
