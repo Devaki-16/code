@@ -896,3 +896,39 @@ public class JsonReaderApplication implements CommandLineRunner {
     }
 }
 
+
+private void displayEntities(List<Wrapper> wrappers) {
+    System.out.println("\n===== ENTITY DATA =====");
+    System.out.printf("Total entities: %d%n%n", wrappers.size());
+
+    int index = 1;
+    for (Wrapper wrapper : wrappers) {
+        EntityData entity = wrapper.getEntity();
+        Map<String, Object> identifiers = entity != null ? entity.getIdentifiers() : null;
+        Map<String, Object> businessGroup = wrapper.getBusinessGroup();
+
+        System.out.printf("Entity %d:%n", index++);
+
+        // Format identifiers
+        if (identifiers != null && !identifiers.isEmpty()) {
+            String identifierStr = identifiers.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.joining(", "));
+            System.out.println("Identifiers: [" + identifierStr + "]");
+        } else {
+            System.out.println("Identifiers: [No data]");
+        }
+
+        // Format businessGroup
+        if (businessGroup != null && !businessGroup.isEmpty()) {
+            String bgStr = businessGroup.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.joining(", "));
+            System.out.println("BusinessGroup: [" + bgStr + "]");
+        } else {
+            System.out.println("BusinessGroup: [No data]");
+        }
+
+        System.out.println(); // Extra line for spacing
+    }
+}
