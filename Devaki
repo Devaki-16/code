@@ -993,3 +993,15 @@ private void displayEntities(List<Wrapper> wrappers) {
         System.out.println();
     }
 }
+
+
+
+
+if (businessGroup.getRiskIndustry() != null && !businessGroup.getRiskIndustry().isEmpty()) {
+    System.out.print(", riskIndustry=[");
+    businessGroup.getRiskIndustry().forEach(risk -> {
+        System.out.print("{industryCode=" + risk.getIndustryCode()
+                + ", industryPercentage=" + risk.getIndustryPercentage() + "} ");
+    });
+    System.out.print("]");
+}
