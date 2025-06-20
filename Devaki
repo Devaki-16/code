@@ -1005,3 +1005,18 @@ if (businessGroup.getRiskIndustry() != null && !businessGroup.getRiskIndustry().
     });
     System.out.print("]");
 }
+
+
+
+
+
+
+
+if (businessGroup.getRiskIndustry() != null && !businessGroup.getRiskIndustry().isEmpty()) {
+    System.out.print(", riskIndustry=[");
+    for (RiskIndustry risk : businessGroup.getRiskIndustry()) {
+        System.out.print("{industryCode=" + risk.getIndustryCode()
+                + ", industryPercentage=" + risk.getIndustryPercentage() + "} ");
+    }
+    System.out.print("]");
+}
